@@ -28,19 +28,22 @@ import java.time.format.DateTimeFormatter
 
 
 @Composable
-fun NotesListScreen() {
+fun NotesListScreen(
+    notes: List<Note>,
+    onNoteClick: (Note) -> Unit
+) {
     var searchQuery by remember { mutableStateOf("") }
 
     var showCreateDialog by remember { mutableStateOf(false) }
     var showOpenDialog by remember { mutableStateOf<Note?>(null) }
 
-    val notes = remember {
-        mutableStateListOf(
-            Note(1, "Title 1", "2026-02-21 08:00:00"),
-            Note(2, "Title 2", "2026-02-20 08:00:00"),
-            Note(3, "Title 3", "2026-02-10 08:00:00"),
-        )
-    }
+//    val notes = remember {
+//        mutableStateListOf(
+//            Note(1, "Title 1", "2026-02-21 08:00:00"),
+//            Note(2, "Title 2", "2026-02-20 08:00:00"),
+//            Note(3, "Title 3", "2026-02-10 08:00:00"),
+//        )
+//    }
 
     val filteredNotes = notes.filter {
         it.title.contains(searchQuery, ignoreCase = true)
@@ -72,7 +75,7 @@ fun NotesListScreen() {
         ) {
             items(filteredNotes) { note ->
                 NoteItem(note = note) {
-                    showOpenDialog = note
+                    onNoteClick(note)
                 }
             }
         }
@@ -88,7 +91,7 @@ fun NotesListScreen() {
                     title = title,
                     createdAt = getCurrentTime()
                 )
-                notes.add(0, newNote)
+//                notes.add(0, newNote)
                 showCreateDialog = false
 
                 // TODO: encrypt & save note
@@ -176,7 +179,7 @@ fun TopBar(
         Spacer(modifier = Modifier.width(8.dp))
 
         IconButton(onClick = onAddClick) {
-            Icon(Icons.Default.Add, contentDescription = "Add")
+            Icon(Icons.Default.Add, contentDescription = "Add", modifier = Modifier.size(32.dp))
         }
     }
 }
