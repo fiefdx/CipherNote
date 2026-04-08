@@ -1,5 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
 
-    <style name="Theme.CipherNote" parent="android:Theme.Material.Light.NoActionBar" />
+    <style name="Theme.CipherNote" parent="android:Theme.Material.Light.NoActionBar">
+        <!-- Make splash invisible -->
+        <item name="android:windowSplashScreenBackground">@android:color/transparent</item>
+        <item name="android:windowSplashScreenAnimatedIcon">@null</item>
+        <item name="android:windowSplashScreenIconBackgroundColor">@android:color/transparent</item>
+
+        <!-- Prevent white flash -->
+        <item name="android:windowBackground">@android:color/transparent</item>
+    </style>
 </resources>
