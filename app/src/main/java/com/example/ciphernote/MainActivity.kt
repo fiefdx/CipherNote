@@ -12,6 +12,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import com.example.ciphernote.ui.screens.initial.InitialScreen
+import com.example.ciphernote.ui.screens.noteslist.NotesListScreen
 import com.example.ciphernote.ui.theme.CipherNoteTheme
 
 class MainActivity : ComponentActivity() {
@@ -21,7 +22,8 @@ class MainActivity : ComponentActivity() {
         setContent {
             CipherNoteTheme {
                 Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
-                    InitialScreen()
+//                    InitialScreen()
+                    NotesListScreen()
                 }
             }
         }
