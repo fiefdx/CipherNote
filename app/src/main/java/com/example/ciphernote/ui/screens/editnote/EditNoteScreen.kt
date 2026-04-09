@@ -14,6 +14,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.geometry.CornerRadius
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.dp
 import com.example.ciphernote.data.Note
 
@@ -87,6 +88,10 @@ fun EditNoteScreen(
             }
             // Simple custom scrollbar using Canvas
             val thumbHeightDp = 50.dp
+            val density = LocalDensity.current
+            val thumbHeightPx = with(density) { thumbHeightDp.toPx() }
+            val cornerRadiusPx = with(density) { 4.dp.toPx() }
+
             Canvas(
                 modifier = Modifier
                     .align(Alignment.CenterEnd)
@@ -97,12 +102,13 @@ fun EditNoteScreen(
                 val maxScroll = scrollState.maxValue.toFloat()
                 if (maxScroll > 0f) {
                     val fraction = scrollState.value / maxScroll
-                    val thumbTop = size.height * fraction
+                    val availableSpace = size.height - thumbHeightPx
+                    val thumbTop = (availableSpace * fraction).coerceIn(0f, availableSpace)
                     drawRoundRect(
                         color = Color.Gray,
                         topLeft = androidx.compose.ui.geometry.Offset(0f, thumbTop),
-                        size = androidx.compose.ui.geometry.Size(width = size.width, height = thumbHeightDp.toPx()),
-                        cornerRadius = CornerRadius(4.dp.toPx())
+                        size = androidx.compose.ui.geometry.Size(width = size.width, height = thumbHeightPx),
+                        cornerRadius = CornerRadius(cornerRadiusPx)
                     )
                 }
             }
