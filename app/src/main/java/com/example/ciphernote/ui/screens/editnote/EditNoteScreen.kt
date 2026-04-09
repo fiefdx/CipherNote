@@ -62,16 +62,16 @@ fun EditNoteScreen(
             onValueChange = { title = it },
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(8.dp),
+                .padding(start = 8.dp, end = 8.dp),
             textStyle = MaterialTheme.typography.titleLarge
         )
-        Spacer(modifier = Modifier.height(8.dp))
+        
 
         // Content area with vertical scroll bar and border
         Box(
             modifier = Modifier
                 .weight(1f)
-                .padding(horizontal = 8.dp)
+                .padding(8.dp)
         ) {
             Column(
                 modifier = Modifier
