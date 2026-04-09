@@ -96,7 +96,7 @@ fun NotesApp() {
                         notes[index] = newUpdated
                         dbHelper.update(newUpdated)
                     }
-                    currentScreen = Screen.List
+                    currentScreen = Screen.Edit(newUpdated)
                 },
                 onDelete = {
                     notes.removeIf { it.id == screen.note.id }

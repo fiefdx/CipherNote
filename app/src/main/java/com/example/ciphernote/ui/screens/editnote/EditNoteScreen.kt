@@ -16,6 +16,7 @@ import androidx.compose.material.icons.filled.ArrowBackIosNew
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Save
 import androidx.compose.runtime.*
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.onFocusChanged
@@ -39,6 +40,11 @@ fun EditNoteScreen(
 ) {
     var title by remember { mutableStateOf(note.title) }
     var content by remember { mutableStateOf(note.content) }
+    // Sync local state when note changes
+    LaunchedEffect(key1 = note.id) {
+        title = note.title
+        content = note.content
+    }
 
     var showDeleteDialog by remember { mutableStateOf(false) }
 
