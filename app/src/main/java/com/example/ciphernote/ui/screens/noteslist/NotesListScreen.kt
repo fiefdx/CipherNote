@@ -23,27 +23,17 @@ import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.text.input.ImeAction
 import com.example.ciphernote.data.Note
-import java.time.LocalDateTime
-import java.time.format.DateTimeFormatter
-
 
 @Composable
 fun NotesListScreen(
     notes: List<Note>,
-    onNoteClick: (Note) -> Unit
+    onNoteClick: (Note) -> Unit,
+    onAddNote: (String, String) -> Unit
 ) {
     var searchQuery by remember { mutableStateOf("") }
 
     var showCreateDialog by remember { mutableStateOf(false) }
     var showOpenDialog by remember { mutableStateOf<Note?>(null) }
-
-//    val notes = remember {
-//        mutableStateListOf(
-//            Note(1, "Title 1", "2026-02-21 08:00:00"),
-//            Note(2, "Title 2", "2026-02-20 08:00:00"),
-//            Note(3, "Title 3", "2026-02-10 08:00:00"),
-//        )
-//    }
 
     val filteredNotes = notes.filter {
         it.title.contains(searchQuery, ignoreCase = true)
@@ -58,18 +48,15 @@ fun NotesListScreen(
                 indication = null,
                 interactionSource = remember { MutableInteractionSource() }
             ) {
-                focusManager.clearFocus() // lose focus
+                focusManager.clearFocus()
             }
     ) {
-
-        // Top Bar (Search + Add)
         TopBar(
             searchQuery = searchQuery,
             onSearchChange = { searchQuery = it },
             onAddClick = { showCreateDialog = true }
         )
 
-        // Notes List
         LazyColumn(
             modifier = Modifier.fillMaxSize()
         ) {
@@ -86,15 +73,8 @@ fun NotesListScreen(
         CreateNoteDialog(
             onDismiss = { showCreateDialog = false },
             onCreate = { title, password ->
-                val newNote = Note(
-                    id = notes.size + 1,
-                    title = title,
-                    createdAt = getCurrentTime()
-                )
-//                notes.add(0, newNote)
+                onAddNote(title, password)
                 showCreateDialog = false
-
-                // TODO: encrypt & save note
             }
         )
     }
@@ -135,7 +115,6 @@ fun TopBar(
 
             val isKeyboardOpen = keypadHeight > screenHeight * 0.15
 
-            // keyboard closed while field was focused
             if (!isKeyboardOpen && isFocused) {
                 focusManager.clearFocus()
             }
@@ -159,9 +138,7 @@ fun TopBar(
             onValueChange = onSearchChange,
             modifier = Modifier
                 .weight(1f)
-                .onFocusChanged {
-                    isFocused = it.isFocused
-                },
+                .onFocusChanged { isFocused = it.isFocused },
             singleLine = true,
             placeholder = { Text("Search") },
 
@@ -192,15 +169,9 @@ fun NoteItem(note: Note, onClick: () -> Unit) {
             .clickable { onClick() }
             .padding(12.dp)
     ) {
-        Text(
-            text = note.title,
-            style = MaterialTheme.typography.titleMedium
-        )
+        Text(text = note.title, style = MaterialTheme.typography.titleMedium)
 
-        Text(
-            text = note.createdAt,
-            style = MaterialTheme.typography.bodySmall
-        )
+        Text(text = note.createdAt, style = MaterialTheme.typography.bodySmall)
     }
 
     Divider()
@@ -234,9 +205,7 @@ fun CreateNoteDialog(
             }
         },
         confirmButton = {
-            Button(onClick = {
-                onCreate(title, password)
-            }) {
+            Button(onClick = { onCreate(title, password) }) {
                 Text("Create")
             }
         },
@@ -273,9 +242,7 @@ fun OpenNoteDialog(
             }
         },
         confirmButton = {
-            Button(onClick = {
-                onOpen(password)
-            }) {
+            Button(onClick = { onOpen(password) }) {
                 Text("Open")
             }
         },
@@ -285,9 +252,4 @@ fun OpenNoteDialog(
             }
         }
     )
-}
-
-fun getCurrentTime(): String {
-    val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")
-    return LocalDateTime.now().format(formatter)
 }

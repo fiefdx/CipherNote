@@ -17,14 +17,17 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
 import com.example.ciphernote.data.Note
+import com.example.ciphernote.data.CipherNoteDbHelper
 import com.example.ciphernote.ui.screens.editnote.EditNoteScreen
 import com.example.ciphernote.ui.screens.initial.InitialScreen
 import com.example.ciphernote.ui.screens.noteslist.NotesListScreen
 import com.example.ciphernote.ui.screens.noteslist.OpenNoteDialog
 import com.example.ciphernote.ui.theme.CipherNoteTheme
-
+import java.time.LocalDateTime
+import java.time.format.DateTimeFormatter
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -33,8 +36,6 @@ class MainActivity : ComponentActivity() {
         setContent {
             CipherNoteTheme {
                 Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
-//                    InitialScreen()
-//                    NotesListScreen()
                     NotesApp()
                 }
             }
@@ -55,35 +56,49 @@ fun NotesApp() {
     var showOpenDialog by remember { mutableStateOf(false) }
     var showErrorDialog by remember { mutableStateOf(false) }
 
+    val context = LocalContext.current
+    val dbHelper = remember { CipherNoteDbHelper(context) }
     val notes = remember {
-        mutableStateListOf(
-            Note(1, "Title 1", "2026-02-21 08:00:00")
-        )
+        mutableStateListOf<Note>().apply {
+            addAll(dbHelper.getAll())
+        }
+    }
+
+    fun formatNow(): String {
+        val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")
+        return LocalDateTime.now().format(formatter)
     }
 
     when (val screen = currentScreen) {
-
         is Screen.List -> {
             NotesListScreen(
                 notes = notes,
                 onNoteClick = {
                     selectedNote = it
                     showOpenDialog = true
+                },
+                onAddNote = { title, password ->
+                    val newNote = Note(id = 0, title = title, content = "", createdAt = formatNow())
+                    val dbId = dbHelper.insert(newNote).toInt()
+                    notes.add(0, newNote.copy(id = dbId))
                 }
             )
         }
-
         is Screen.Edit -> {
             EditNoteScreen(
                 note = screen.note,
                 onBack = { currentScreen = Screen.List },
                 onSave = { updated ->
                     val index = notes.indexOfFirst { it.id == updated.id }
-                    if (index != -1) notes[index] = updated
+                    if (index != -1) {
+                        notes[index] = updated
+                        dbHelper.update(updated)
+                    }
                     currentScreen = Screen.List
                 },
                 onDelete = {
                     notes.removeIf { it.id == screen.note.id }
+                    dbHelper.delete(screen.note.id)
                     currentScreen = Screen.List
                 }
             )

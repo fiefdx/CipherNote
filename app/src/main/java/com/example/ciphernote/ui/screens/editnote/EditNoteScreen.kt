@@ -38,7 +38,7 @@ fun EditNoteScreen(
     onDelete: () -> Unit
 ) {
     var title by remember { mutableStateOf(note.title) }
-    var content by remember { mutableStateOf("This is a test note.") }
+    var content by remember { mutableStateOf(note.content) }
 
     var showDeleteDialog by remember { mutableStateOf(false) }
 
@@ -60,7 +60,7 @@ fun EditNoteScreen(
             Spacer(modifier = Modifier.weight(1f))
 
             // Save
-            IconButton(onClick = { onSave(note.copy(title = title)) }) {
+            IconButton(onClick = { onSave(note.copy(title = title, content = content)) }) {
                 Icon(Icons.Default.Save, contentDescription = "Save", modifier = Modifier.size(32.dp))
             }
 
