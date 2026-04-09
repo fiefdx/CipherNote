@@ -5,6 +5,7 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.layout.fillMaxSize
+import kotlinx.coroutines.delay
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
@@ -15,6 +16,7 @@ import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
@@ -44,13 +46,14 @@ class MainActivity : ComponentActivity() {
 }
 
 sealed class Screen {
+    object Initial : Screen()
     object List : Screen()
     data class Edit(val note: Note) : Screen()
 }
 
 @Composable
 fun NotesApp() {
-    var currentScreen by remember { mutableStateOf<Screen>(Screen.List) }
+    var currentScreen by remember { mutableStateOf<Screen>(Screen.Initial) }
 
     var selectedNote by remember { mutableStateOf<Note?>(null) }
     var showOpenDialog by remember { mutableStateOf(false) }
@@ -70,6 +73,13 @@ fun NotesApp() {
     }
 
     when (val screen = currentScreen) {
+        is Screen.Initial -> {
+            InitialScreen()
+            LaunchedEffect(key1 = screen) {
+                delay(2000L)
+                currentScreen = Screen.List
+            }
+        }
         is Screen.List -> {
             NotesListScreen(
                 notes = notes,
