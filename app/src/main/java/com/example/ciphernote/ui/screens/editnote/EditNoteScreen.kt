@@ -16,6 +16,8 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.dp
+import androidx.compose.foundation.border
+import androidx.compose.foundation.shape.RoundedCornerShape
 import com.example.ciphernote.data.Note
 
 @Composable
@@ -67,9 +69,11 @@ fun EditNoteScreen(
         )
         Spacer(modifier = Modifier.height(8.dp))
 
-        // Content area with vertical scroll bar
+        // Content area with vertical scroll bar and border
         Box(
-            modifier = Modifier.weight(1f)
+            modifier = Modifier
+                .weight(1f)
+                .border(1.dp, Color.Gray, androidx.compose.foundation.shape.RoundedCornerShape(4.dp))
         ) {
             Column(
                 modifier = Modifier
