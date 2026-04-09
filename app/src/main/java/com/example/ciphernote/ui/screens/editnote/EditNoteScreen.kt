@@ -16,8 +16,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.dp
-import androidx.compose.foundation.border
-import androidx.compose.foundation.shape.RoundedCornerShape
 import com.example.ciphernote.data.Note
 
 @Composable
@@ -73,19 +71,18 @@ fun EditNoteScreen(
         Box(
             modifier = Modifier
                 .weight(1f)
-                .border(1.dp, Color.Gray, androidx.compose.foundation.shape.RoundedCornerShape(4.dp))
+                .padding(horizontal = 8.dp)
         ) {
             Column(
                 modifier = Modifier
                     .fillMaxSize()
                     .verticalScroll(scrollState)
             ) {
-                OutlinedTextField(
+                TextField(
                     value = content,
                     onValueChange = { content = it },
                     modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(8.dp),
+                        .fillMaxWidth(),
                     maxLines = Int.MAX_VALUE,
                     textStyle = MaterialTheme.typography.bodyLarge
                 )
