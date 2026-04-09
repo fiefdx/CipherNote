@@ -78,7 +78,7 @@ fun NotesApp() {
                     showOpenDialog = true
                 },
                 onAddNote = { title, password ->
-                    val newNote = Note(id = 0, title = title, content = "", createdAt = formatNow())
+                    val newNote = Note(id = 0, title = title, content = "", createdAt = formatNow(), modifiedAt = null)
                     val dbId = dbHelper.insert(newNote).toInt()
                     notes.add(0, newNote.copy(id = dbId))
                 }
@@ -89,10 +89,12 @@ fun NotesApp() {
                 note = screen.note,
                 onBack = { currentScreen = Screen.List },
                 onSave = { updated ->
-                    val index = notes.indexOfFirst { it.id == updated.id }
+                    val now = formatNow()
+                    val newUpdated = updated.copy(modifiedAt = now)
+                    val index = notes.indexOfFirst { it.id == newUpdated.id }
                     if (index != -1) {
-                        notes[index] = updated
-                        dbHelper.update(updated)
+                        notes[index] = newUpdated
+                        dbHelper.update(newUpdated)
                     }
                     currentScreen = Screen.List
                 },

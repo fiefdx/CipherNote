@@ -13,6 +13,7 @@ private const val COLUMN_ID = "id"
 private const val COLUMN_TITLE = "title"
 private const val COLUMN_CREATED_AT = "created_at"
 private const val COLUMN_CONTENT = "content"
+private const val COLUMN_MODIFIED_AT = "modified_at"
 
 class CipherNoteDbHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME, null, DATABASE_VERSION) {
     override fun onCreate(db: SQLiteDatabase?) {
@@ -21,7 +22,8 @@ class CipherNoteDbHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_
                     "$COLUMN_ID INTEGER PRIMARY KEY AUTOINCREMENT, " +
                     "$COLUMN_TITLE TEXT NOT NULL, " +
                     "$COLUMN_CONTENT TEXT NOT NULL DEFAULT '', " +
-                    "$COLUMN_CREATED_AT TEXT NOT NULL)"
+                    "$COLUMN_CREATED_AT TEXT NOT NULL, " +
+                    "$COLUMN_MODIFIED_AT TEXT" + ")"
         )
     }
 
@@ -37,6 +39,7 @@ class CipherNoteDbHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_
             put(COLUMN_TITLE, note.title)
             put(COLUMN_CONTENT, note.content)
             put(COLUMN_CREATED_AT, note.createdAt)
+            note.modifiedAt?.let { put(COLUMN_MODIFIED_AT, it) }
         }
         writableDatabase.insert(TABLE_NOTES, null, values).also { return it }
     }
@@ -46,7 +49,7 @@ class CipherNoteDbHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_
         val list = mutableListOf<Note>()
         val cursor = readableDatabase.query(
             TABLE_NOTES,
-            arrayOf(COLUMN_ID, COLUMN_TITLE, COLUMN_CONTENT, COLUMN_CREATED_AT),
+            arrayOf(COLUMN_ID, COLUMN_TITLE, COLUMN_CONTENT, COLUMN_CREATED_AT, COLUMN_MODIFIED_AT),
             null, null, null, null,
             "$COLUMN_ID DESC"
         )
@@ -56,7 +59,8 @@ class CipherNoteDbHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_
                 val title = it.getString(it.getColumnIndexOrThrow(COLUMN_TITLE))
                 val content = it.getString(it.getColumnIndexOrThrow(COLUMN_CONTENT))
                 val createdAt = it.getString(it.getColumnIndexOrThrow(COLUMN_CREATED_AT))
-                list.add(Note(id, title, content, createdAt))
+                val modifiedAt = it.getString(it.getColumnIndexOrThrow(COLUMN_MODIFIED_AT)).takeIf { it.isNotEmpty() }
+                list.add(Note(id, title, content, createdAt, modifiedAt))
             }
         }
         return list
@@ -68,6 +72,7 @@ class CipherNoteDbHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_
             put(COLUMN_TITLE, note.title)
             put(COLUMN_CONTENT, note.content)
             put(COLUMN_CREATED_AT, note.createdAt)
+            note.modifiedAt?.let { put(COLUMN_MODIFIED_AT, it) }
         }
         return writableDatabase.update(
             TABLE_NOTES,
