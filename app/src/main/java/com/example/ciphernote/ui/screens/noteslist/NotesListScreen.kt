@@ -130,7 +130,8 @@ fun TopBar(
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .height(72.dp).padding(horizontal = 8.dp),
+            .height(96.dp)
+                .padding(8.dp, 32.dp, 8.dp, 8.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
         OutlinedTextField(
@@ -174,7 +175,9 @@ fun NoteItem(note: Note, onClick: () -> Unit) {
         Text(text = note.createdAt, style = MaterialTheme.typography.bodySmall)
     }
 
-    Divider()
+    Divider(
+        modifier = Modifier.padding(8.dp, 0.dp, 8.dp, 0.dp)
+    )
 }
 
 @Composable
