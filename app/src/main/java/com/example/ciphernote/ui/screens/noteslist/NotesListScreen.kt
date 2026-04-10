@@ -148,16 +148,10 @@ fun TopBar(
         modifier = Modifier
             .fillMaxWidth()
             .statusBarsPadding()
-            .padding(horizontal = 16.dp, vertical = 8.dp)
+            .height(96.dp)
+            .padding(horizontal = 16.dp)
     ) {
-        Text(
-            text = "CipherNote",
-            style = MaterialTheme.typography.headlineMedium,
-            fontWeight = FontWeight.Bold,
-            color = MaterialTheme.colorScheme.primary
-        )
         Spacer(modifier = Modifier.height(8.dp))
-        
         OutlinedTextField(
             value = searchQuery,
             onValueChange = onSearchChange,
