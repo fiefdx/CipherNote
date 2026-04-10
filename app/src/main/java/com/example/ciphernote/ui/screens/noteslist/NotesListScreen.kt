@@ -43,7 +43,7 @@ fun NotesListScreen(
 
     Column(
         modifier = Modifier.fillMaxSize()
-            .padding(5.dp, 20.dp, 5.dp, 5.dp)
+            .padding(horizontal = 5.dp, vertical = 0.dp)
             .clickable(
                 indication = null,
                 interactionSource = remember { MutableInteractionSource() }
@@ -130,7 +130,7 @@ fun TopBar(
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(8.dp),
+            .height(72.dp).padding(horizontal = 8.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
         OutlinedTextField(

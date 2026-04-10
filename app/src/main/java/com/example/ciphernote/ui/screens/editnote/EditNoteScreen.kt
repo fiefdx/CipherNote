@@ -41,7 +41,7 @@ fun EditNoteScreen(
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(8.dp, 20.dp, 8.dp, 8.dp),
+                .height(72.dp).padding(horizontal = 8.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
             IconButton(onClick = onBack) {
