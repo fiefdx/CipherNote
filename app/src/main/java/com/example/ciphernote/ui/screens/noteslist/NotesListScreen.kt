@@ -2,6 +2,7 @@ package com.example.ciphernote.ui.screens.noteslist
 
 import android.graphics.Rect
 import android.view.ViewTreeObserver
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
@@ -12,16 +13,21 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Search
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.onFocusChanged
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.platform.LocalView
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.PasswordVisualTransformation
-import androidx.compose.ui.unit.dp
 import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.example.ciphernote.data.Note
 
 @Composable
@@ -31,7 +37,6 @@ fun NotesListScreen(
     onAddNote: (String, String) -> Unit
 ) {
     var searchQuery by remember { mutableStateOf("") }
-
     var showCreateDialog by remember { mutableStateOf(false) }
     var showOpenDialog by remember { mutableStateOf<Note?>(null) }
 
@@ -41,9 +46,17 @@ fun NotesListScreen(
 
     val focusManager = LocalFocusManager.current
 
-    Column(
-        modifier = Modifier.fillMaxSize()
-            .padding(horizontal = 5.dp, vertical = 0.dp)
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(
+                Brush.verticalGradient(
+                    colors = listOf(
+                        MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.3f),
+                        MaterialTheme.colorScheme.surface
+                    )
+                )
+            )
             .clickable(
                 indication = null,
                 interactionSource = remember { MutableInteractionSource() }
@@ -51,24 +64,38 @@ fun NotesListScreen(
                 focusManager.clearFocus()
             }
     ) {
-        TopBar(
-            searchQuery = searchQuery,
-            onSearchChange = { searchQuery = it },
-            onAddClick = { showCreateDialog = true }
-        )
+        Column(modifier = Modifier.fillMaxSize()) {
+            TopBar(
+                searchQuery = searchQuery,
+                onSearchChange = { searchQuery = it },
+                onAddClick = { showCreateDialog = true }
+            )
 
-        LazyColumn(
-            modifier = Modifier.fillMaxSize()
-        ) {
-            items(filteredNotes) { note ->
-                NoteItem(note = note) {
-                    onNoteClick(note)
+            LazyColumn(
+                modifier = Modifier.fillMaxSize(),
+                contentPadding = PaddingValues(bottom = 80.dp)
+            ) {
+                items(filteredNotes) { note ->
+                    NoteItem(note = note) {
+                        onNoteClick(note)
+                    }
                 }
             }
         }
+
+        // Floating Action Button for a more "Product" feel
+        FloatingActionButton(
+            onClick = { showCreateDialog = true },
+            containerColor = MaterialTheme.colorScheme.primary,
+            contentColor = MaterialTheme.colorScheme.onPrimary,
+            modifier = Modifier
+                .align(Alignment.BottomEnd)
+                .padding(24.dp)
+        ) {
+            Icon(Icons.Default.Add, contentDescription = "Add Note", modifier = Modifier.size(32.dp))
+        }
     }
 
-    // Create Note Dialog
     if (showCreateDialog) {
         CreateNoteDialog(
             onDismiss = { showCreateDialog = false },
@@ -79,14 +106,12 @@ fun NotesListScreen(
         )
     }
 
-    // Open Note Dialog
     showOpenDialog?.let { note ->
         OpenNoteDialog(
             note = note,
             onDismiss = { showOpenDialog = null },
             onOpen = { password ->
                 showOpenDialog = null
-
                 // TODO: decrypt note
             }
         )
@@ -102,82 +127,90 @@ fun TopBar(
     var isFocused by remember { mutableStateOf(false) }
     val focusManager = LocalFocusManager.current
     val keyboardController = LocalSoftwareKeyboardController.current
-
     val view = LocalView.current
 
     DisposableEffect(view) {
         val listener = ViewTreeObserver.OnGlobalLayoutListener {
             val rect = Rect()
             view.getWindowVisibleDisplayFrame(rect)
-
             val screenHeight = view.rootView.height
             val keypadHeight = screenHeight - rect.bottom
-
             val isKeyboardOpen = keypadHeight > screenHeight * 0.15
-
             if (!isKeyboardOpen && isFocused) {
                 focusManager.clearFocus()
             }
         }
-
         view.viewTreeObserver.addOnGlobalLayoutListener(listener)
-
-        onDispose {
-            view.viewTreeObserver.removeOnGlobalLayoutListener(listener)
-        }
+        onDispose { view.viewTreeObserver.removeOnGlobalLayoutListener(listener) }
     }
 
-    Row(
+    Column(
         modifier = Modifier
             .fillMaxWidth()
-            .height(96.dp)
-                .padding(8.dp, 32.dp, 8.dp, 8.dp),
-        verticalAlignment = Alignment.CenterVertically
+            .statusBarsPadding()
+            .padding(horizontal = 16.dp, vertical = 8.dp)
     ) {
+        Text(
+            text = "CipherNote",
+            style = MaterialTheme.typography.headlineMedium,
+            fontWeight = FontWeight.Bold,
+            color = MaterialTheme.colorScheme.primary
+        )
+        Spacer(modifier = Modifier.height(8.dp))
+        
         OutlinedTextField(
             value = searchQuery,
             onValueChange = onSearchChange,
             modifier = Modifier
-                .weight(1f)
+                .fillMaxWidth()
                 .onFocusChanged { isFocused = it.isFocused },
+            shape = MaterialTheme.shapes.medium,
+            leadingIcon = { Icon(Icons.Default.Search, contentDescription = null) },
             singleLine = true,
-            placeholder = { Text("Search") },
-
-            keyboardOptions = KeyboardOptions(
-                imeAction = ImeAction.Search
-            ),
+            placeholder = { Text("Search your notes...") },
+            keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search),
             keyboardActions = KeyboardActions(
                 onSearch = {
                     keyboardController?.hide()
                     focusManager.clearFocus()
                 }
+            ),
+            colors = OutlinedTextFieldDefaults.colors(
+                focusedBorderColor = MaterialTheme.colorScheme.primary,
+                unfocusedBorderColor = MaterialTheme.colorScheme.outlineVariant
             )
         )
-
-        Spacer(modifier = Modifier.width(8.dp))
-
-        IconButton(onClick = onAddClick) {
-            Icon(Icons.Default.Add, contentDescription = "Add", modifier = Modifier.size(32.dp))
-        }
     }
 }
 
 @Composable
 fun NoteItem(note: Note, onClick: () -> Unit) {
-    Column(
+    Card(
         modifier = Modifier
             .fillMaxWidth()
-            .clickable { onClick() }
-            .padding(12.dp)
+            .padding(horizontal = 16.dp, vertical = 6.dp)
+            .clickable { onClick() },
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)
+        ),
+        shape = MaterialTheme.shapes.medium,
+        elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
     ) {
-        Text(text = note.title, style = MaterialTheme.typography.titleMedium)
-
-        Text(text = note.createdAt, style = MaterialTheme.typography.bodySmall)
+        Column(modifier = Modifier.padding(16.dp)) {
+            Text(
+                text = note.title,
+                style = MaterialTheme.typography.titleLarge,
+                fontWeight = FontWeight.Bold,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+            Spacer(modifier = Modifier.height(4.dp))
+            Text(
+                text = note.createdAt,
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f)
+            )
+        }
     }
-
-    Divider(
-        modifier = Modifier.padding(8.dp, 0.dp, 8.dp, 0.dp)
-    )
 }
 
 @Composable
@@ -190,30 +223,36 @@ fun CreateNoteDialog(
 
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text("New Note") },
+        title = { Text("New Secret Note", fontWeight = FontWeight.Bold) },
         text = {
-            Column {
+            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 OutlinedTextField(
                     value = title,
                     onValueChange = { title = it },
-                    label = { Text("Title") }
+                    label = { Text("Note Title") },
+                    modifier = Modifier.fillMaxWidth(),
+                    singleLine = true
                 )
-
                 OutlinedTextField(
                     value = password,
                     onValueChange = { password = it },
-                    label = { Text("Password") },
-                    visualTransformation = PasswordVisualTransformation()
+                    label = { Text("Encryption Password") },
+                    visualTransformation = PasswordVisualTransformation(),
+                    modifier = Modifier.fillMaxWidth(),
+                    singleLine = true
                 )
             }
         },
         confirmButton = {
-            Button(onClick = { onCreate(title, password) }) {
+            Button(
+                onClick = { onCreate(title, password) },
+                enabled = title.isNotBlank() && password.isNotBlank()
+            ) {
                 Text("Create")
             }
         },
         dismissButton = {
-            Button(onClick = onDismiss) {
+            TextButton(onClick = onDismiss) {
                 Text("Cancel")
             }
         }
@@ -230,27 +269,27 @@ fun OpenNoteDialog(
 
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text("Open Note") },
+        title = { Text("Unlock Note", fontWeight = FontWeight.Bold) },
         text = {
-            Column {
-                Text(text = note.title)
-                Spacer(modifier = Modifier.height(8.dp))
-
+            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                Text(text = note.title, style = MaterialTheme.typography.titleMedium)
                 OutlinedTextField(
                     value = password,
                     onValueChange = { password = it },
-                    label = { Text("Password") },
-                    visualTransformation = PasswordVisualTransformation()
+                    label = { Text("Enter Password") },
+                    visualTransformation = PasswordVisualTransformation(),
+                    modifier = Modifier.fillMaxWidth(),
+                    singleLine = true
                 )
             }
         },
         confirmButton = {
             Button(onClick = { onOpen(password) }) {
-                Text("Open")
+                Text("Unlock")
             }
         },
         dismissButton = {
-            Button(onClick = onDismiss) {
+            TextButton(onClick = onDismiss) {
                 Text("Cancel")
             }
         }
