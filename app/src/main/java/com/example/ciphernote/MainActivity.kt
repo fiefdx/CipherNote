@@ -94,7 +94,8 @@ fun NotesApp() {
                 onAddNote = { title, password ->
                     val keyHex = SecurityUtils.md5ToHex(password)
                     val encryptedContent = TeaEncrypt.encryptString("crypt", keyHex)
-                    val newNote = Note(id = 0, title = title, content = encryptedContent, createdAt = formatNow(), modifiedAt = null)
+                    val now = formatNow()
+                    val newNote = Note(id = 0, title = title, content = encryptedContent, createdAt = now, modifiedAt = now)
                     val dbId = dbHelper.insert(newNote).toInt()
                     notes.add(0, newNote.copy(id = dbId))
                 },
@@ -126,7 +127,10 @@ fun NotesApp() {
             EditNoteScreen(
                 note = screen.note,
                 password = screen.password,
-                onBack = { currentScreen = Screen.List },
+                onBack = {
+                    currentScreen = Screen.List
+                    notes.sortByDescending { it.modifiedAt }
+                },
                 onSave = { updated ->
                     val keyHex = SecurityUtils.md5ToHex(screen.password)
                     val rawContent = "crypt" + updated.content
