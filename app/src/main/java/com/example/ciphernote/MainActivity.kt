@@ -63,6 +63,7 @@ fun NotesApp() {
     var selectedNote by remember { mutableStateOf<Note?>(null) }
     var showOpenDialog by remember { mutableStateOf(false) }
     var showErrorDialog by remember { mutableStateOf(false) }
+    var needToSort by remember { mutableStateOf(false) }
 
     val context = LocalContext.current
     val dbHelper = remember { CipherNoteDbHelper(context) }
@@ -101,6 +102,7 @@ fun NotesApp() {
                 },
                 onOpenNote = { note, password ->
 //                    Log.e("password", password)
+                    needToSort = false
                     val keyHex = SecurityUtils.md5ToHex(password)
                     try {
 //                        Log.e("encrypt content", note.content)
@@ -129,7 +131,9 @@ fun NotesApp() {
                 password = screen.password,
                 onBack = {
                     currentScreen = Screen.List
-                    notes.sortByDescending { it.modifiedAt }
+                    if (needToSort) {
+                        notes.sortByDescending { it.modifiedAt }
+                    }
                 },
                 onSave = { updated ->
                     val keyHex = SecurityUtils.md5ToHex(screen.password)
@@ -142,6 +146,7 @@ fun NotesApp() {
                         notes[index] = newUpdated
                         dbHelper.update(newUpdated)
                     }
+                    needToSort = true
                 },
                 onDelete = {
                     notes.removeIf { it.id == screen.note.id }
