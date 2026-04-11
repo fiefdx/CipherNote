@@ -26,6 +26,7 @@ import com.example.ciphernote.data.Note
 @Composable
 fun EditNoteScreen(
     note: Note,
+    password: String,
     onBack: () -> Unit,
     onSave: (Note) -> Unit,
     onDelete: () -> Unit
@@ -67,9 +68,12 @@ fun EditNoteScreen(
                     Icon(Icons.Default.ArrowBackIosNew, contentDescription = "Back", modifier = Modifier.size(32.dp))
                 }
                 Spacer(modifier = Modifier.weight(1f))
-                
+
                 // Actions
-                IconButton(onClick = { onSave(note.copy(title = title, content = content)) }) {
+                IconButton(onClick = { 
+                    // The actual encryption happens in the onSave callback in MainActivity
+                    onSave(note.copy(title = title, content = content)) 
+                }) {
                     Icon(Icons.Default.Save, contentDescription = "Save", modifier = Modifier.size(32.dp), tint = MaterialTheme.colorScheme.primary)
                 }
                 Spacer(modifier = Modifier.width(8.dp))

@@ -34,7 +34,8 @@ import com.example.ciphernote.data.Note
 fun NotesListScreen(
     notes: List<Note>,
     onNoteClick: (Note) -> Unit,
-    onAddNote: (String, String) -> Unit
+    onAddNote: (String, String) -> Unit,
+    onOpenNote: (Note, String) -> Unit
 ) {
     var searchQuery by remember { mutableStateOf("") }
     var showCreateDialog by remember { mutableStateOf(false) }
@@ -78,6 +79,7 @@ fun NotesListScreen(
                 items(filteredNotes) { note ->
                     NoteItem(note = note) {
                         onNoteClick(note)
+                        showOpenDialog = note
                     }
                 }
             }
@@ -111,8 +113,8 @@ fun NotesListScreen(
             note = note,
             onDismiss = { showOpenDialog = null },
             onOpen = { password ->
+                onOpenNote(note, password)
                 showOpenDialog = null
-                // TODO: decrypt note
             }
         )
     }
@@ -217,20 +219,20 @@ fun CreateNoteDialog(
 
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text("New Secret Note", fontWeight = FontWeight.Bold) },
+        title = { Text("New Note", fontWeight = FontWeight.Bold) },
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 OutlinedTextField(
                     value = title,
                     onValueChange = { title = it },
-                    label = { Text("Note Title") },
+                    label = { Text("Title") },
                     modifier = Modifier.fillMaxWidth(),
                     singleLine = true
                 )
                 OutlinedTextField(
                     value = password,
                     onValueChange = { password = it },
-                    label = { Text("Encryption Password") },
+                    label = { Text("Password") },
                     visualTransformation = PasswordVisualTransformation(),
                     modifier = Modifier.fillMaxWidth(),
                     singleLine = true

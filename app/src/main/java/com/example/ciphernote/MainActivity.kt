@@ -2,22 +2,22 @@ package com.example.ciphernote
 
 import android.content.pm.ActivityInfo
 import android.os.Bundle
+import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.layout.fillMaxSize
-import kotlinx.coroutines.delay
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
@@ -28,9 +28,12 @@ import com.example.ciphernote.ui.screens.editnote.EditNoteScreen
 import com.example.ciphernote.ui.screens.initial.InitialScreen
 import com.example.ciphernote.ui.screens.noteslist.NotesListScreen
 import com.example.ciphernote.ui.screens.noteslist.OpenNoteDialog
+import com.example.ciphernote.utils.SecurityUtils
+import com.example.ciphernote.utils.tea.TeaEncrypt
 import com.example.ciphernote.ui.theme.CipherNoteTheme
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
+import kotlinx.coroutines.delay
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -50,7 +53,7 @@ class MainActivity : ComponentActivity() {
 sealed class Screen {
     object Initial : Screen()
     object List : Screen()
-    data class Edit(val note: Note) : Screen()
+    data class Edit(val note: Note, val password: String) : Screen()
 }
 
 @Composable
@@ -87,28 +90,54 @@ fun NotesApp() {
                 notes = notes,
                 onNoteClick = {
                     selectedNote = it
-                    showOpenDialog = true
                 },
                 onAddNote = { title, password ->
-                    val newNote = Note(id = 0, title = title, content = "", createdAt = formatNow(), modifiedAt = null)
+                    val keyHex = SecurityUtils.md5ToHex(password)
+                    val encryptedContent = TeaEncrypt.encryptString("crypt", keyHex)
+                    val newNote = Note(id = 0, title = title, content = encryptedContent, createdAt = formatNow(), modifiedAt = null)
                     val dbId = dbHelper.insert(newNote).toInt()
                     notes.add(0, newNote.copy(id = dbId))
+                },
+                onOpenNote = { note, password ->
+//                    Log.e("password", password)
+                    val keyHex = SecurityUtils.md5ToHex(password)
+                    try {
+//                        Log.e("encrypt content", note.content)
+                        val decryptedContent = TeaEncrypt.decryptString(note.content, keyHex)
+                        // A simple check: if decryption fails, it might return something that doesn't look like text 
+                        // or TEA might throw an error. For this implementation, we assume if it doesn't throw, it's okay.
+                        // In a real app, you'd verify a MAC or similar.
+//                        Log.e("decrypt content", decryptedContent)
+                        showOpenDialog = false
+                        if (decryptedContent.startsWith("crypt")) {
+                            val decryptedNote = note.copy(content = decryptedContent.substring(5))
+                            currentScreen = Screen.Edit(decryptedNote, password)
+                        } else {
+                            showErrorDialog = true
+                        }
+                    } catch (e: Exception) {
+                        showOpenDialog = false
+                        showErrorDialog = true
+                    }
                 }
             )
         }
         is Screen.Edit -> {
             EditNoteScreen(
                 note = screen.note,
+                password = screen.password,
                 onBack = { currentScreen = Screen.List },
                 onSave = { updated ->
+                    val keyHex = SecurityUtils.md5ToHex(screen.password)
+                    val rawContent = "crypt" + updated.content
+                    val encryptedContent = TeaEncrypt.encryptString(rawContent, keyHex)
                     val now = formatNow()
-                    val newUpdated = updated.copy(modifiedAt = now)
+                    val newUpdated = updated.copy(content = encryptedContent, modifiedAt = now)
                     val index = notes.indexOfFirst { it.id == newUpdated.id }
                     if (index != -1) {
                         notes[index] = newUpdated
                         dbHelper.update(newUpdated)
                     }
-                    currentScreen = Screen.Edit(newUpdated)
                 },
                 onDelete = {
                     notes.removeIf { it.id == screen.note.id }
@@ -127,7 +156,7 @@ fun NotesApp() {
             onOpen = { password ->
                 if (password == "1234") { // TODO replace with real encryption check
                     showOpenDialog = false
-                    currentScreen = Screen.Edit(selectedNote!!)
+                    currentScreen = Screen.Edit(selectedNote!!, password)
                 } else {
                     showOpenDialog = false
                     showErrorDialog = true
