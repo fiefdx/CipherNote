@@ -21,7 +21,6 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.tooling.preview.Preview
 import com.example.ciphernote.data.Note
 import com.example.ciphernote.data.CipherNoteDbHelper
 import com.example.ciphernote.ui.screens.editnote.EditNoteScreen
@@ -43,7 +42,9 @@ class MainActivity : ComponentActivity() {
         setContent {
             CipherNoteTheme {
                 Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
-                    NotesApp()
+                    NotesApp(
+                        modifier = Modifier.padding(innerPadding)
+                    )
                 }
             }
         }
@@ -57,7 +58,9 @@ sealed class Screen {
 }
 
 @Composable
-fun NotesApp() {
+fun NotesApp(
+    modifier: Modifier
+) {
     var currentScreen by remember { mutableStateOf<Screen>(Screen.Initial) }
 
     var selectedNote by remember { mutableStateOf<Note?>(null) }
@@ -88,6 +91,7 @@ fun NotesApp() {
         }
         is Screen.List -> {
             NotesListScreen(
+                modifier = modifier,
                 notes = notes,
                 onNoteClick = {
                     selectedNote = it
@@ -101,16 +105,13 @@ fun NotesApp() {
                     notes.add(0, newNote.copy(id = dbId))
                 },
                 onOpenNote = { note, password ->
-//                    Log.e("password", password)
                     needToSort = false
                     val keyHex = SecurityUtils.md5ToHex(password)
                     try {
-//                        Log.e("encrypt content", note.content)
                         val decryptedContent = TeaEncrypt.decryptString(note.content, keyHex)
                         // A simple check: if decryption fails, it might return something that doesn't look like text 
                         // or TEA might throw an error. For this implementation, we assume if it doesn't throw, it's okay.
                         // In a real app, you'd verify a MAC or similar.
-//                        Log.e("decrypt content", decryptedContent)
                         showOpenDialog = false
                         if (decryptedContent.startsWith("crypt")) {
                             val decryptedNote = note.copy(content = decryptedContent.substring(5))

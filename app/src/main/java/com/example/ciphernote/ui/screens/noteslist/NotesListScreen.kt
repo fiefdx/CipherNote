@@ -32,6 +32,7 @@ import com.example.ciphernote.data.Note
 
 @Composable
 fun NotesListScreen(
+    modifier: Modifier,
     notes: List<Note>,
     onNoteClick: (Note) -> Unit,
     onAddNote: (String, String) -> Unit,
