@@ -158,23 +158,6 @@ fun NotesApp(
         }
     }
 
-    // Open dialog
-    if (showOpenDialog && selectedNote != null) {
-        OpenNoteDialog(
-            note = selectedNote!!,
-            onDismiss = { showOpenDialog = false },
-            onOpen = { password ->
-                if (password == "1234") { // TODO replace with real encryption check
-                    showOpenDialog = false
-                    currentScreen = Screen.Edit(selectedNote!!, password)
-                } else {
-                    showOpenDialog = false
-                    showErrorDialog = true
-                }
-            }
-        )
-    }
-
     // Error dialog
     if (showErrorDialog) {
         AlertDialog(
