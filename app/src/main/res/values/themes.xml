@@ -2,12 +2,11 @@
 <resources>
 
     <style name="Theme.CipherNote" parent="android:Theme.Material.Light.NoActionBar">
-        <!-- Make splash invisible -->
-        <item name="android:windowSplashScreenBackground">@android:color/transparent</item>
-        <item name="android:windowSplashScreenAnimatedIcon">@null</item>
-        <item name="android:windowSplashScreenIconBackgroundColor">@android:color/transparent</item>
-
         <!-- Prevent white flash -->
         <item name="android:windowBackground">@android:color/transparent</item>
+    </style>
+
+    <style name="Theme.CipherNote.NoSplash" parent="Theme.CipherNote">
+        <item name="android:windowIsTranslucent">true</item>
     </style>
 </resources>
