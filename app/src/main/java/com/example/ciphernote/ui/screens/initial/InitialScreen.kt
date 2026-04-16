@@ -40,7 +40,7 @@ fun InitialScreen() {
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(Color(0xFFF5F5F5)),
+            .background(MaterialTheme.colorScheme.background),
         contentAlignment = Alignment.Center // This centers content vertically and horizontally
     ) {
 
@@ -59,10 +59,10 @@ fun InitialScreen() {
                 Box(
                     modifier = Modifier
                         .size(100.dp)
-                        .background(Color(0xFF2196F3), shape = RoundedCornerShape(20.dp)),
+                        .background(MaterialTheme.colorScheme.primaryContainer, shape = RoundedCornerShape(20.dp)),
                     contentAlignment = Alignment.Center
                 ) {
-                    Text("🔒", fontSize = 50.sp, color = Color.White)
+                    Text("🔒", fontSize = 50.sp, color = MaterialTheme.colorScheme.onPrimaryContainer)
                 }
 
                 Spacer(modifier = Modifier.height(16.dp))
@@ -82,7 +82,7 @@ fun InitialScreen() {
                         text = "CipherNote",
                         style = MaterialTheme.typography.headlineMedium,
                         fontWeight = FontWeight.Bold,
-                        color = Color(0xFF2196F3),
+                        color = MaterialTheme.colorScheme.primary,
                     )
                 }
             }

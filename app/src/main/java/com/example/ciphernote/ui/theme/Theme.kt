@@ -18,22 +18,24 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.TextButton
 
 private val DarkColorScheme = darkColorScheme(
-    primary = Color(0xFFBB86FC),
-    secondary = Color(0xFF03DAC6),
-    tertiary = Color(0xFFFF80AB)
+    primary = Purple40,
+    secondary = Pink40,
+    tertiary = PurpleGrey40,
+    background = Color(0xFF121212),
+    surface = Color(0xFF1E1E1E)
 )
 
 private val LightColorScheme = lightColorScheme(
-    primary = Color(0xFF6200EE),
-    secondary = Color(0xFF03A9F4),
-    tertiary = Color(0xFFF50057),
-    background = Color(0xFFFFFFFF),
-    surface = Color(0xFFFFFFFF),
-    onPrimary = Color.White,
+    primary = Purple80,
+    secondary = Pink80,
+    tertiary = PurpleGrey80,
+    background = Color(0xFFF5F5F5),
+    surface = Color.White,
+    onPrimary = Color.Black,
     onSecondary = Color.Black,
-    onTertiary = Color.White,
-    onBackground = Color(0xFF000000),
-    onSurface = Color(0xFF000000)
+    onTertiary = Color.Black,
+    onBackground = Color.Black,
+    onSurface = Color.Black
 )
 
 @Composable
