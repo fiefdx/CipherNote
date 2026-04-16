@@ -33,11 +33,12 @@ import com.example.ciphernote.ui.theme.CipherNoteTheme
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 import kotlinx.coroutines.delay
+import androidx.lifecycle.viewmodel.compose.viewModel
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_PORTRAIT
+        // Allow rotation; removed forced portrait orientation
         enableEdgeToEdge()
         setContent {
             CipherNoteTheme {
@@ -61,12 +62,13 @@ sealed class Screen {
 fun NotesApp(
     modifier: Modifier
 ) {
-    var currentScreen by remember { mutableStateOf<Screen>(Screen.Initial) }
+    val notesViewModel: NotesViewModel = viewModel()
+    var currentScreen by notesViewModel.currentScreen
 
-    var selectedNote by remember { mutableStateOf<Note?>(null) }
-    var showOpenDialog by remember { mutableStateOf(false) }
-    var showErrorDialog by remember { mutableStateOf(false) }
-    var needToSort by remember { mutableStateOf(false) }
+    var selectedNote by notesViewModel.selectedNote
+    var showOpenDialog by notesViewModel.showOpenDialog
+    var showErrorDialog by notesViewModel.showErrorDialog
+    var needToSort by notesViewModel.needToSort
 
     val context = LocalContext.current
     val dbHelper = remember { CipherNoteDbHelper(context) }

@@ -11,6 +11,8 @@ import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Save
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.ciphernote.ui.screens.editnote.EditNoteViewModel
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.CornerRadius
@@ -31,12 +33,11 @@ fun EditNoteScreen(
     onSave: (Note) -> Unit,
     onDelete: () -> Unit
 ) {
-    var title by remember { mutableStateOf(note.title) }
-    var content by remember { mutableStateOf(note.content) }
-    
+    // ViewModel holds the title and content across configuration changes
+    val viewModel: EditNoteViewModel = viewModel(key = "EditNote_${note.id}")
+    // Initialise the ViewModel with the note data only once per note
     LaunchedEffect(key1 = note.id) {
-        title = note.title
-        content = note.content
+        viewModel.init(note)
     }
     
     val scrollState = rememberScrollState()
@@ -72,7 +73,7 @@ fun EditNoteScreen(
                 // Actions
                 IconButton(onClick = { 
                     // The actual encryption happens in the onSave callback in MainActivity
-                    onSave(note.copy(title = title, content = content)) 
+                    onSave(note.copy(title = viewModel.title, content = viewModel.content)) 
                 }) {
                     Icon(Icons.Default.Save, contentDescription = "Save", modifier = Modifier.size(32.dp), tint = MaterialTheme.colorScheme.primary)
                 }
@@ -84,8 +85,8 @@ fun EditNoteScreen(
 
             // Title Input
             TextField(
-                value = title,
-                onValueChange = { title = it },
+                value = viewModel.title,
+                onValueChange = { viewModel.updateTitle(it) },
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(horizontal = 16.dp),
@@ -112,8 +113,8 @@ fun EditNoteScreen(
                         .verticalScroll(scrollState)
                 ) {
                     TextField(
-                        value = content,
-                        onValueChange = { content = it },
+                        value = viewModel.content,
+                        onValueChange = { viewModel.updateContent(it) },
                         modifier = Modifier.fillMaxWidth(),
                         textStyle = MaterialTheme.typography.bodyLarge,
                         colors = TextFieldDefaults.colors(
