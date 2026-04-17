@@ -4,7 +4,7 @@ CipherNote is a secure notes manager for Android.
 
 ## Core Functional Features
 
-- **Password‑protected notes**: Users provide a password; the app derives a key using MD5 and encrypts note content with the TEA algorithm.
+- **Secure encrypted notes**: Note content is encrypted using AES-GCM with keys securely stored in the Android Keystore.
 - **Create, edit, delete notes**: Full CRUD operations on notes stored in an SQLite database.
 - **Encrypted storage**: All note contents are saved encrypted; decryption occurs only after correct password entry.
 - **Automatic timestamping**: Notes record creation and modification timestamps.

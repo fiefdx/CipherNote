@@ -1,8 +1,6 @@
 package com.example.ciphernote
 
-import android.content.pm.ActivityInfo
 import android.os.Bundle
-import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
@@ -14,26 +12,23 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.mutableStateListOf
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateListOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
-import com.example.ciphernote.data.Note
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.ciphernote.data.CipherNoteDbHelper
+import com.example.ciphernote.data.Note
+import com.example.ciphernote.security.CryptoManager
 import com.example.ciphernote.ui.screens.editnote.EditNoteScreen
 import com.example.ciphernote.ui.screens.initial.InitialScreen
 import com.example.ciphernote.ui.screens.noteslist.NotesListScreen
-import com.example.ciphernote.ui.screens.noteslist.OpenNoteDialog
-import com.example.ciphernote.utils.SecurityUtils
-import com.example.ciphernote.utils.tea.TeaEncrypt
 import com.example.ciphernote.ui.theme.CipherNoteTheme
+import kotlinx.coroutines.delay
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
-import kotlinx.coroutines.delay
-import androidx.lifecycle.viewmodel.compose.viewModel
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -78,6 +73,8 @@ fun NotesApp(
         }
     }
 
+    val crypto = remember { CryptoManager() }
+
     fun formatNow(): String {
         val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")
         return LocalDateTime.now().format(formatter)
@@ -86,41 +83,48 @@ fun NotesApp(
     when (val screen = currentScreen) {
         is Screen.Initial -> {
             InitialScreen()
-            LaunchedEffect(key1 = screen) {
+            LaunchedEffect(screen) {
                 delay(2000L)
                 currentScreen = Screen.List
             }
         }
+
         is Screen.List -> {
             NotesListScreen(
                 modifier = modifier,
                 notes = notes,
+
                 onNoteClick = {
                     selectedNote = it
                 },
-                onAddNote = { title, password ->
-                    val keyHex = SecurityUtils.md5ToHex(password)
-                    val encryptedContent = TeaEncrypt.encryptString("crypt", keyHex)
+
+                onAddNote = { title, _ ->
+                    val encryptedContent = crypto.encrypt("")
                     val now = formatNow()
-                    val newNote = Note(id = 0, title = title, content = encryptedContent, createdAt = now, modifiedAt = now)
+
+                    val newNote = Note(
+                        id = 0,
+                        title = title,
+                        content = encryptedContent,
+                        createdAt = now,
+                        modifiedAt = now
+                    )
+
                     val dbId = dbHelper.insert(newNote).toInt()
                     notes.add(0, newNote.copy(id = dbId))
                 },
-                onOpenNote = { note, password ->
+
+                onOpenNote = { note, _ ->
                     needToSort = false
-                    val keyHex = SecurityUtils.md5ToHex(password)
+
                     try {
-                        val decryptedContent = TeaEncrypt.decryptString(note.content, keyHex)
-                        // A simple check: if decryption fails, it might return something that doesn't look like text 
-                        // or TEA might throw an error. For this implementation, we assume if it doesn't throw, it's okay.
-                        // In a real app, you'd verify a MAC or similar.
                         showOpenDialog = false
-                        if (decryptedContent.startsWith("crypt")) {
-                            val decryptedNote = note.copy(content = decryptedContent.substring(5))
-                            currentScreen = Screen.Edit(decryptedNote, password)
-                        } else {
-                            showErrorDialog = true
-                        }
+
+                        val decryptedContent = crypto.decrypt(note.content)
+
+                        val decryptedNote = note.copy(content = decryptedContent)
+                        currentScreen = Screen.Edit(decryptedNote, "")
+
                     } catch (e: Exception) {
                         showOpenDialog = false
                         showErrorDialog = true
@@ -128,29 +132,37 @@ fun NotesApp(
                 }
             )
         }
+
         is Screen.Edit -> {
             EditNoteScreen(
                 note = screen.note,
                 password = screen.password,
+
                 onBack = {
                     currentScreen = Screen.List
                     if (needToSort) {
                         notes.sortByDescending { it.modifiedAt }
                     }
                 },
+
                 onSave = { updated ->
-                    val keyHex = SecurityUtils.md5ToHex(screen.password)
-                    val rawContent = "crypt" + updated.content
-                    val encryptedContent = TeaEncrypt.encryptString(rawContent, keyHex)
+                    val encryptedContent = crypto.encrypt(updated.content)
                     val now = formatNow()
-                    val newUpdated = updated.copy(content = encryptedContent, modifiedAt = now)
+
+                    val newUpdated = updated.copy(
+                        content = encryptedContent,
+                        modifiedAt = now
+                    )
+
                     val index = notes.indexOfFirst { it.id == newUpdated.id }
                     if (index != -1) {
                         notes[index] = newUpdated
                         dbHelper.update(newUpdated)
                     }
+
                     needToSort = true
                 },
+
                 onDelete = {
                     notes.removeIf { it.id == screen.note.id }
                     dbHelper.delete(screen.note.id)
